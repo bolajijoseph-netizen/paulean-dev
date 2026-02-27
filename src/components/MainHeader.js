@@ -258,11 +258,9 @@ const handleIsMobile = () =>{console.log('In handleIsMobile'); onOpenMobile();}
 	  
 	  {addTaskModal&& (
 	  <AddTaskModal
-        open={addTaskModal}
         onClose={() => setAddTaskModal(false)}
         onAdd={handleAddTask}
         onDelegate={handleDelegateTask}
-        defaultDateTime= {getTodayLocalISO}                              //"2026-02-20T14:00"
       />  
 	  )}
 	  

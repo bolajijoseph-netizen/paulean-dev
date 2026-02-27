@@ -3,11 +3,11 @@ import React, { useEffect, useRef, useState } from "react";
 import {useUserTasks} from './UserTasksContext'
 import { useAuth } from './auth/AuthContext';
 import { useUserProfile } from "./UserProfileContext";
+import SmallMessageModal from '../utils/SmallMessageModal';
 
 
 export default function AddTaskModal({
-  open = false,
-  defaultCurrentPlan,
+  open1 = false,
   onClose = () => {},
   onAdd = (task) => {},
   onDelegate = (task) => {}
@@ -16,7 +16,7 @@ export default function AddTaskModal({
   const [dateTime, setDateTime] = useState("");
   const [duration, setDuration] = useState("30 min");
   //const [list, setList] = useState("Today's Plan");
-  const [currentPlan, setCurrentPlan] = useState(defaultCurrentPlan||"Today's Plan");
+  const [currentPlan, setCurrentPlan] = useState("today");
   //const [messages, setMessaages] = useState("");
   const [notes, setNotes] = useState("");
   const bgRef = useRef(null);
@@ -24,17 +24,20 @@ export default function AddTaskModal({
   const { user} = useAuth();
   const { profile} = useUserProfile();
   const [delegatedToPaulean,setDelegatedToPaulean]=useState(false);
+  const [open,setOpen]=useState(true);
+ 
+  
   
   function getTodayLocalISO() {
-  const d = new Date();
+	const d = new Date();
 
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const hours = String(d.getHours()).padStart(2, "0");
-  const minutes = String(d.getMinutes()).padStart(2, "0");
+	const year = d.getFullYear();
+	const month = String(d.getMonth() + 1).padStart(2, "0");
+	const day = String(d.getDate()).padStart(2, "0");
+	const hours = String(d.getHours()).padStart(2, "0");
+	const minutes = String(d.getMinutes()).padStart(2, "0");
 
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+	return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 
@@ -44,7 +47,7 @@ export default function AddTaskModal({
       setTitle("");
       setDateTime(getTodayLocalISO() || "");
       setDuration("30 min");
-      setCurrentPlan(defaultCurrentPlan||"Today's Plan");
+      setCurrentPlan("today");
       setNotes("");
       // focus title input after open
       setTimeout(() => {
@@ -94,6 +97,8 @@ export default function AddTaskModal({
   }
 
 const handleDelegateTask = () => {setDelegatedToPaulean(true)}
+console.log('In AdTaskModal');
+console.log(user);
   
   return (
     <div
@@ -204,12 +209,20 @@ const handleDelegateTask = () => {setDelegatedToPaulean(true)}
             </div>
           </div>
         </div>
-
         <div className="modal-ftr" style={{ display: "flex", gap: 8, padding: 12 }}>
           <button className="btn-sec" onClick={onClose}>Cancel</button>
           <button className="btn-pri" onClick={handleAdd}>Add Task</button>
         </div>
       </div>
+	  {!user && (
+		<SmallMessageModal
+			open={!user}
+			onClose={onClose}
+			style={{ background: "#f4d03f" }}
+			>
+			<span>Kindly Login or Sign up to proceed</span>
+		</SmallMessageModal>
+		)}
     </div>
   );
 }
