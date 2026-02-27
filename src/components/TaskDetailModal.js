@@ -1,0 +1,168 @@
+import React,{useState} from "react";
+import {useUserTasks} from './UserTasksContext'
+
+export default function TaskDetailModal({
+  open,
+  inTask,
+  onClose,
+  onSave,
+  onDelegate,
+  
+}) {
+	
+	const {updateTask} = useUserTasks();
+	const [task,setTask]=useState(inTask);	
+
+  if (!open || !task) return null;
+  
+  
+  console.log('In TaskDetailModal');
+  console.log(task);
+  
+  const handleChange = (updates) => {
+  setTask(prev => ({
+    ...prev,
+    ...updates
+  }));
+  
+};
+
+const handleSave = () => {
+	updateTask(task.taskId,task);
+	onClose();
+	} 
+	
+function getDateLocalISO(date) {
+  const d = new Date(date);
+
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+
+  //return `${year}-${month}-${day} ${hours}:${minutes}`; //Feb 20, 2026 · 2:00 PM
+  
+}
+
+function formatPrettyDate(d) {
+	const date= new Date(d);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+  const year = date.getFullYear();
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+
+  hours = hours % 12 || 12; // convert 0 → 12
+
+  return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
+}
+
+
+
+
+
+  return (
+    <div className="modal-bg open" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        
+        {/* HEADER */}
+        <div className="modal-hdr">
+          <div className="modal-circle"></div>
+
+          <input
+            className="modal-title-inp"
+            value={task.title || ""}
+            onChange={(e) => handleChange({ title: e.target.value })}
+          />
+
+          <div className="modal-x" onClick={onClose}>✕</div>
+        </div>
+
+        {/* BODY */}
+        <div className="modal-body">
+
+          <div className="mrow">
+            <div className="mrow-ic">📅</div>
+            <div className="mrow-lbl">Date</div>
+            <div className="mrow-val">
+              {formatPrettyDate(task.dateTime)}
+            </div>
+          </div>
+
+          <div className="mrow">
+            <div className="mrow-ic">⏱</div>
+            <div className="mrow-lbl">Duration</div>
+            <div className="mrow-val tap">{task.duration}</div>
+          </div>
+
+          <div className="mrow">
+            <div className="mrow-ic">🏷</div>
+            <div className="mrow-lbl">Label</div>
+            <div className="mrow-val tap">{task.label || "None"}</div>
+          </div>
+
+          <div className="mrow">
+            <div className="mrow-ic">🔁</div>
+            <div className="mrow-lbl">Repeats</div>
+            <div className="mrow-val">Does not repeat</div>
+          </div>
+
+          <div className="mdivider"></div>
+
+          <div className="msec">Notes</div>
+
+          <textarea
+            className="mtextarea"
+            placeholder="Add notes…"
+            value={task.notes || ""}
+            onChange={(e) => handleChange({ notes: e.target.value })}
+          />
+		  
+		  <div>
+		  <label className="mrow-lbl">%Complete:</label>
+		  <input
+            className="modal-title-inp"
+            value={task.percentComplete || ""}
+			type="range"
+			min="0" max="100"
+            onChange={(e) => handleChange({ percentComplete: e.target.value })}
+          />
+		  <sup style={{ fontSize: '0.55em', color: 'green' }}>  {task.percentComplete}</sup>
+		  </div>
+
+
+          <div className="mdivider"></div>
+
+          {/* DELEGATE BOX */}
+          <div className="delegate-box">
+            <div className="delegate-box-title">✦ Let Paulean handle this?</div>
+            <div className="delegate-box-desc">
+              Paulean will take ownership and update you when it's done.
+            </div>
+
+            <button
+              className="btn-blue"
+              style={{ width: "100%" }}
+              onClick={onDelegate}
+            >
+              ✦ Delegate to Paulean
+            </button>
+          </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className="modal-ftr">
+          <button className="btn-sec" onClick={onClose}>Cancel</button>
+          <button className="btn-pri" onClick={handleSave}>Save</button>
+        </div>
+
+      </div>
+    </div>
+  );
+}
