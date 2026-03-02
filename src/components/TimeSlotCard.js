@@ -4,18 +4,27 @@ import {useUserTasks} from './UserTasksContext'
 import TaskDetailModal from './TaskDetailModal';
 
 
-export default function TaskCard({ task, onOpen, draggableProps }) {
+export default function TimeSlotCard({ task, onOpen, draggableProps,style }) {
 	//const [task,setTask]=useState(task);
 	const [localTask, setLocalTask] = useState(task);
 	const {toggleDone} = useUserTasks();
 	const [done,setDone]=useState('');
 	const [taskDetailModal,setTaskDetailModal]=useState(false);
+	//const [isNotToday,setIsNotToday]=useState(task.currenPlan !== "today");
 	const [contextMenu, setContextMenu] = useState({
 			visible: false,
 			x: 0,
 			y: 0,
 			task: null
 			});
+	
+			
+			
+ useEffect(() => {
+  setLocalTask(task);	 
+ },[task]);
+ 
+ 
 			
 const onClose = () => {setContextMenu(prev => ({...prev,visible: false  }));};
 
@@ -75,12 +84,14 @@ const handleOpenTaskDetailModal = () => {setTaskDetailModal(true);}
 
   return (
     <div
-      className={`tcard ${task.currentPlan} ${task.done ? 'done' : ''}`}
-	  //className={["tcard",localTask.urgent && "urgent",localTask.done && "done",
-	  //localTask.paulean&&localTask.pauleanQueued&&"p-queued",localTask.paulean&&!localTask.pauleanQueued&&"p-card"].filter(Boolean).join(" ")}
+	    key={localTask.taskId}
+		style={style}
+      //className1={`tcard ${task.paulean ? (task.pauleanQueued ? 'p-queued' : 'p-card') : ''} ${task.urgent ? 'urgent-l' : ''}`}
+	  className={["tcard today",localTask.done && "done",
+	  localTask.paulean&&localTask.pauleanQueued&&"p-queued",localTask.paulean&&!localTask.pauleanQueued&&"p-card"].filter(Boolean).join(" ")}
       draggable
       onDragStart={(e) => draggableProps.onDragStart(e, localTask)}
-      onDragEnd={draggableProps.onDragEnd}
+      //onDragEnd={draggableProps.onDragEnd}
       //onContextMenu={(e) => draggableProps.onContextMenu(e, task)}
 	  	onContextMenu={(e) => {
 								e.preventDefault();
@@ -97,9 +108,9 @@ const handleOpenTaskDetailModal = () => {setTaskDetailModal(true);}
       <div className="tc-top">
         <div className={`tc-check ${localTask.done ? 'done' : ''}`} onClick={(e) => { e.stopPropagation(); handleToggleDone(localTask); }} />
         <div className="tc-body">
-          <div className="tc-title" title={localTask.title}>{localTask.title}</div>
+			<div className="tc-title" title={localTask.title} >{localTask.title}</div>
           <div className="tc-foot">
-            {localTask.dateTime && <span className="tc-time">{formatSmartDateTime(localTask.dateTime)}</span>}
+            {/* localTask.dateTime && isNotToday && <span className="tc-time">{formatSmartDateTime(localTask.dateTime)}</span> */}
             {localTask.duration && <span className="tc-dur">{localTask.duration}</span>}
             {localTask.paulean && <span className="pill pill-a">✦ {localTask.pauleanQueued ? 'Queued' : 'In Progress'}</span>}
 			{localTask.percentComplete>0 && <span style={{fontSize: '0.55em', color: 'green'}}>{localTask.percentComplete + ' %'}</span>}

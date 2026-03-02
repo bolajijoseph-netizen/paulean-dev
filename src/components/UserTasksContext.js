@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState,useMemo } from "react";
-import {collection, doc, addDoc, getDocs,setDoc,updateDoc, serverTimestamp, query, where,  onSnapshot} from "firebase/firestore";
+import {collection, doc, addDoc, getDocs,setDoc,updateDoc,deleteDoc,Timestamp, serverTimestamp, query, where,  onSnapshot} from "firebase/firestore";
 import { db } from './auth/firebaseConfig'; // adjust path
 
 
@@ -112,10 +112,27 @@ export function UserTasksProvider({ userId, children }) {
   // ---------------------------------------------------
   // UPDATE TASK
   // ---------------------------------------------------
+  
   const updateTask = async (taskId, updated) => {
+  try {
     const ref = doc(db, "userTasks", taskId);
     await updateDoc(ref, updated);
-  };
+	
+  } catch (e) {
+    console.error(`Error updating task ${taskId}:`, e);
+  }
+};
+
+ // ---------------------------------------------------
+  // DELETE TASK
+  // ---------------------------------------------------
+const deleteTask = async (taskId) => {
+  try {
+	await deleteDoc(doc(db, "userTasks", taskId));
+  } catch (e) {
+    console.error(`Error deleting task ${taskId}:`, e);
+  }
+};
 
   // ---------------------------------------------------
   // TOGGLE URGENT
@@ -143,11 +160,31 @@ export function UserTasksProvider({ userId, children }) {
   // MOVE TASK TO ANOTHER PLAN
   // ---------------------------------------------------
   const moveTaskTo = async (task, newPlan) => {
+	 console.log("moveTaskTo called");
     if (!task) return;
     task.currentPlan=newPlan;
     await updateTask(task.taskId, task);
 	
   };
+  
+  // ---------------------------------------------------
+  // MOVE TASK TO ANOTHER TIME
+  // ---------------------------------------------------
+  const moveTaskTime = async (task, dateTime) => {
+  if (!task) return;
+
+  //const dt= new Date("2026-02-28T08:30");
+  //const updated ={...task,dateTime:"2026-02-28T08:30"};
+
+  const updated = {
+    ...task,
+	dateTime:dateTime
+  }; 
+  
+    await updateTask(task.taskId, updated);
+  };
+
+
 
   // ---------------------------------------------------
   // ADD MESSAGE TO TASK
@@ -215,11 +252,13 @@ export function UserTasksProvider({ userId, children }) {
         toggleUrgent,
         toggleDone,
         moveTaskTo,
+		moveTaskTime,
         addMessage,
 		delegateTask,
 		loadUserTasks,
 		latestMessage,
 		latestTaskId,
+		deleteTask,
       }}
     >
       {children}
@@ -244,5 +283,18 @@ export function useUserTasks() {
 												latestMessage=messageCreatedDate>latestCreatedDate:m.text:latestMessage;
 						 })
 	  })
+// ---------------------------------------------------
+  // UPDATE TASK
+  // ---------------------------------------------------	  
+const updateTask = async (taskId, updated) => {
+	try {
+    const ref = doc(db, "userTasks", taskId);
+    await updateDoc(ref, updated);
+	console.log(`Succesfully updated ${updated.dateTime}`);
+	} catch(e){
+		console.log(`Error with updateDoc ${e}`);
+	}
+  };
+  
 */	  
 	  

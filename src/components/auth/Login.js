@@ -79,7 +79,7 @@ return (
               handleSubmit(event);
             }}
           >
-            ×
+            
           </span>
 
           <h2>Sign In to Paulean</h2>

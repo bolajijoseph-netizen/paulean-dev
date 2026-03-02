@@ -37,10 +37,9 @@ function getPlan(dateString) {
  <div className="kanban-wrap">
   {Object.values(columns).map((col) => (
     <div className="kcol" key={col.id}>
-      <div className={`kcol-header ${col.id}`}>
-		<span className={`kcol-icon col-${col.id}`}></span>
+      <div className="kcol-header">
         <div className="kcol-title">{col.title}</div>
-        <div className={`kcol-count kcol-${col.id}`}>
+        <div className="kcol-count">
           {
             tasks.filter(
               (t) =>

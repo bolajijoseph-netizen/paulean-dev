@@ -1,11 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function SmallMessageModal({
   open,
   onClose,
   children,
-  style = {}
+  style = {},
+  autoCloseMs = null   // e.g., 60000 for 1 minute
 }) {
+
+  // Auto-close effect
+  useEffect(() => {
+    if (!open || !autoCloseMs) return;
+
+    const timer = setTimeout(() => {
+      onClose();
+    }, autoCloseMs);
+
+    return () => clearTimeout(timer);
+  }, [open, autoCloseMs, onClose]);
+
   if (!open) return null;
 
   return (
@@ -49,6 +62,7 @@ export default function SmallMessageModal({
         >
           ×
         </button>
+
         {children}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React,{useState} from "react";
+import React,{useState,useEffect} from "react";
 import {useUserTasks} from './UserTasksContext'
 
 export default function TaskDetailModal({
@@ -10,7 +10,8 @@ export default function TaskDetailModal({
   
 }) {
 	
-	const {updateTask} = useUserTasks();
+
+	const {updateTask,deleteTask} = useUserTasks();
 	const [task,setTask]=useState(inTask);	
 
   if (!open || !task) return null;
@@ -27,11 +28,17 @@ export default function TaskDetailModal({
   
 };
 
+
 const handleSave = () => {
 	updateTask(task.taskId,task);
 	onClose();
 	} 
-	
+
+const handleDelete = () => {
+	deleteTask(task.taskId);
+	onClose();
+	}
+
 function getDateLocalISO(date) {
   const d = new Date(date);
 
@@ -68,7 +75,7 @@ function formatPrettyDate(d) {
 
 
   return (
-    <div className="modal-bg open" onClick={onClose}>
+    <div className="modal-bg open" onClick={onClose}  onContextMenu={(e) => e.stopPropagation()}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         
         {/* HEADER */}
@@ -157,10 +164,13 @@ function formatPrettyDate(d) {
         </div>
 
         {/* FOOTER */}
-        <div className="modal-ftr">
-          <button className="btn-sec" onClick={onClose}>Cancel</button>
-          <button className="btn-pri" onClick={handleSave}>Save</button>
-        </div>
+		<div className="modal-ftr">
+			<div className="left-buttons">
+				<button className="btn-cancel" onClick={onClose}>Cancel</button>
+				<button className="btn-save" onClick={handleSave}>Save</button>
+			</div>
+			<button className="btn-del" onClick={handleDelete}>Delete</button>
+		</div>
 
       </div>
     </div>

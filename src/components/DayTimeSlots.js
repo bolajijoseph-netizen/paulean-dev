@@ -1,17 +1,80 @@
-import React from "react";
+import React,{useState,useEffect} from "react";
+import TimeSlotCard from './TimeSlotCard';
+import AddTaskModal from './AddTaskModal';
+import {useUserTasks} from './UserTasksContext'
 
-export default function TimelineDay({
+export default function DayTimeSlots({
   dayStartAt = "07:00",
   dayEndAt = "19:00",
   slotMinutes = 30,
   slotHeight = 40,
-  tasks = [],
-  renderTask
+  inTasks = [],
+  renderTask,
+  handlers
 }) {
+const [addTaskModal,setAddTaskModal]=useState(false);
+const [defaultDateTime,setDefaultDateTime]=useState(false);
+const [tasks, setTasks]=useState([]);
+const {moveTaskTime} = useUserTasks();
+
+
+const DAY_START = "07:00";      // always fixed
+const SLOT_HEIGHT = 40;         // px per slot
+const SLOT_MINUTES = 30;        // minutes per slot
+
   const toMinutes = (t) => {
+	if(t){
     const [h, m] = t.split(":").map(Number);
     return h * 60 + m;
+	}
+	return null;
   };
+
+const DAY_START_MIN = toMinutes(DAY_START)
+
+
+   
+function roundToNearestHalfHour(dateString, duration) {
+	
+const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(duration) * 60;
+
+
+  const date = new Date(dateString);
+
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+
+  // Round to nearest 30 minutes
+  if (minutes < 15) {
+    minutes = 0;
+  } else if (minutes < 45) {
+    minutes = 30;
+  } else {
+    minutes = 0;
+    hours += 1;
+  }
+
+  // Build rounded start time
+  const start = new Date(date);
+  start.setHours(hours, minutes, 0, 0);
+
+  // Add duration for end time
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+
+  // Format HH:MM
+  const fmt = (d) =>
+    String(d.getHours()).padStart(2, "0") +
+    ":" +
+    String(d.getMinutes()).padStart(2, "0");
+
+  return {
+    startTime: fmt(start),
+    endTime: fmt(end),
+	durationMinutes,
+  };
+}
+  
+
 
   const formatAMPM = (time24) => {
     let [h, m] = time24.split(":").map(Number);
@@ -36,11 +99,38 @@ export default function TimelineDay({
     }
     return out;
   }, [dayStartAt, dayEndAt, slotMinutes]);
+  
+  function fn_defaultDateTime(timeString) {
+  
+  const [h, m] = timeString.split(":");
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // 0-based
+  const day = String(now.getDate()).padStart(2, "0");
+
+  //return new Date(year, month, day, h, m, 0, 0);
+  return `${year}-${month}-${day}T${h}:${m}`;
+}
+
+
+  
+  
+  useEffect(() => {
+	var tasks=inTasks.map((t,id) =>
+						{var taskTimes=roundToNearestHalfHour(t.dateTime,t.duration);
+						return { ...t,startAt:taskTimes.startTime,endAt:taskTimes.endTime,durationMinutes:taskTimes.durationMinutes};
+						});
+   setTasks(tasks);
+  }, [inTasks]);
 
   const tasksWithLanes = React.useMemo(() => {
+	
     const sorted = [...tasks].sort(
       (a, b) => toMinutes(a.startAt) - toMinutes(b.startAt)
     );
+	
+	
 
     const lanes = [];
 
@@ -78,9 +168,121 @@ export default function TimelineDay({
 
     return sorted;
   }, [tasks]);
+  
+  const handleAddTaskModal =(slot) => {
+	setDefaultDateTime(fn_defaultDateTime(slot));
+	setAddTaskModal(true);  
+  }
+  
+  function handleDropOnTimeline(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  
+  console.log('In handleDropOnTimeline');
+
+  const taskId = e.dataTransfer.getData("taskId");
+  const task = tasks.find(t => t.id === taskId);
+
+  const rect = e.currentTarget.getBoundingClientRect();
+  const offsetY = e.clientY - rect.top; // px from top of timeline
+
+  updateTaskTimeFromDrop(task, offsetY);
+}
+
+function updateTaskTimeFromDrop(task, offsetY) {
+  // Convert px → minutes from day start
+  const minutesFromStart = (offsetY / SLOT_HEIGHT) * SLOT_MINUTES;
+
+  // Absolute minutes from midnight
+  const absoluteMinutes = DAY_START_MIN + minutesFromStart;
+
+  // Round to nearest 30 minutes
+  const rounded = Math.round(absoluteMinutes / 30) * 30;
+  
+
+  // Compute start time
+  const startH = Math.floor(rounded / 60);
+  const startM = rounded % 60;
+
+  const startTime = `${String(startH).padStart(2, "0")}:${String(startM).padStart(2, "0")}`;
+  const dateTime=fn_defaultDateTime(startTime);
+  
+  
+  moveTaskTime(task, dateTime);
+  
+	
+function computeOverlaps(tasks) {
+  const sorted = [...tasks].sort((a, b) => a.startAt - b.startAt);
+  const lanes = [];
+
+  const result = sorted.map(task => {
+    let laneIndex = lanes.findIndex(laneEnd => laneEnd <= task.startAt);
+    if (laneIndex === -1) {
+      laneIndex = lanes.length;
+      lanes.push(task.endAt);
+    } else {
+      lanes[laneIndex] = task.endAt;
+    }
+    return { ...task, lane: laneIndex };
+  });
+
+  return result;
+}
+
+
+	
+setTasks(prev => {
+  // 1. Update the changed task
+  const updated = prev.map(t =>
+    t.taskId === task.taskId
+      ? { ...t, dateTime }
+      : t
+  );
+
+  // 2. Normalize times
+  const withTimes = updated.map(t => {
+    const { startTime, endTime } = roundToNearestHalfHour(t.dateTime, t.duration);
+    return {
+      ...t,
+      startAt: startTime,
+      endAt: endTime
+    };
+  });
+
+  // 3. Recompute overlaps
+  const sorted = [...withTimes].sort(
+    (a, b) => toMinutes(a.startAt) - toMinutes(b.startAt)
+  );
+
+  const lanes = [];
+  const withOverlaps = sorted.map(task => {
+    const start = toMinutes(task.startAt);
+    const end = toMinutes(task.endAt);
+
+    let laneIndex = lanes.findIndex(laneEnd => laneEnd <= start);
+    if (laneIndex === -1) {
+      laneIndex = lanes.length;
+      lanes.push(end);
+    } else {
+      lanes[laneIndex] = end;
+    }
+
+    return { ...task, lane: laneIndex };
+  });
+
+  const maxLane = Math.max(...withOverlaps.map(t => t.lane), 0);
+  return withOverlaps.map(t => ({ ...t, totalLanes: maxLane + 1 }));
+});
+
+
+ 
+}
+
+ 
 
   return (
-    <div className="timeline-day" style={{ overflowY: "auto", height: "100%" }}>
+    <div className="timeline-day thin-scroll" style={{ overflowY: "auto", height: "100%" }}>
       <div
         className="timeline-grid"
         style={{
@@ -88,7 +290,9 @@ export default function TimelineDay({
           gridTemplateColumns: "80px 1fr",
           position: "relative"
         }}
-      >
+		onDragOver={(e) => e.preventDefault()}
+		onDrop={(e) => handleDropOnTimeline(e)}
+        >
         {/* Sticky time column */}
         <div
           className="time-col"
@@ -96,7 +300,7 @@ export default function TimelineDay({
             position: "sticky",
             left: 0,
             top: 0,
-            background: "#fff",
+            background:  "#fff",
             zIndex: 10,
             borderRight: "1px solid #ddd"
           }}
@@ -128,9 +332,11 @@ export default function TimelineDay({
               key={slot}
               className="slot-bg"
               style={{
+				background1: "#E8EBE6",
                 height: slotHeight,
-                borderBottom: "1px solid #eee"
+                borderBottom: "#201e1e"  //#ded6d6"      // "1px solid #eee"
               }}
+			  onClick={() => handleAddTaskModal(slot)}
             />
           ))}
 
@@ -139,16 +345,15 @@ export default function TimelineDay({
             const endMin = toMinutes(task.endAt);
 
             const top = (startMin - dayStartMin) / minutesPerPixel;
-            const height = (endMin - startMin) / minutesPerPixel;
+            //const height = (endMin - startMin) / minutesPerPixel;
+			const height = 1.3*task.durationMinutes;
 
             const width = 100 / task.totalLanes;
             const left = task.lane * width;
 
             return (
-              <div
-                key={task.id}
-                className="task-card"
-                style={{
+               <TimeSlotCard
+			   style={{
                   position: "absolute",
                   top,
                   height,
@@ -161,110 +366,27 @@ export default function TimelineDay({
                   overflow: "hidden",
                   borderLeft: "4px solid #4A90E2"
                 }}
-              >
-                {renderTask ? renderTask(task) : task.title}
-              </div>
+                key={task.taskId}
+                task={task}
+                onOpen={handlers.openDetail(true)}
+                onToggleDone={handlers.toggleDone}
+                draggableProps={handlers}
+				//onDragStart={() => handleDragStart(task)}
+              />
             );
           })}
         </div>
       </div>
+	  {addTaskModal && (
+		<AddTaskModal
+        open={addTaskModal}
+		defaultCurrentPlan='today'
+        defaultDateTime={defaultDateTime}
+        onClose={() => setAddTaskModal(false)}
+        onSubmit={handlers.submitAddTask}
+      />
+	
+	)}
     </div>
   );
 }
-
-/*
-
-<DayTimeSlots
-  tasks={[
-    { id: 1, title: "Design UI", status: "todo", startAt: "09:00", endAt: "10:00" },
-    { id: 2, title: "API Work", status: "doing", startAt: "09:30", endAt: "11:00" },
-    { id: 3, title: "Testing", status: "done", startAt: "10:00", endAt: "10:30" }
-  ]}
-  renderTask={(task) => (
-    <div className="task-card">{task.title}</div>
-  )}
-/>
-
-*/
-
-/* Utility to generate 30‑minute slots */
-
-
-/*
-.kanban-wrapper {
-  max-width: 1100px;
-  margin: 0 auto;
-  font-family: system-ui, sans-serif;
-}
-
-.kanban-header-row {
-  display: grid;
-  grid-template-columns: 90px 1fr 1fr 1fr;
-  font-weight: 600;
-  font-size: 13px;
-  padding: 8px 0;
-  border-bottom: 1px solid #ddd;
-  background: #fafafa;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-
-.kanban-scroll {
-  max-height: 480px; /* ~8 hours visible */
-  overflow-y: auto;
-  border: 1px solid #eee;
-  border-top: none;
-}
-
-.kanban-row {
-  display: grid;
-  grid-template-columns: 90px 1fr 1fr 1fr;
-  min-height: 48px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.col {
-  padding: 8px;
-  display: flex;
-  align-items: center;
-}
-
-.time-col {
-  font-size: 12px;
-  color: #666;
-  justify-content: flex-end;
-  border-right: 1px solid #eee;
-}
-.cell {
-  position: relative;
-  background: #fffbe6; /* light yellow paper */
-  border: 1px solid #e0dcb8;
-  border-radius: 6px;
-  padding: 8px;
-  box-sizing: border-box;
-
-  /* horizontal ruling */
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.08) 0px,
-      rgba(0, 0, 0, 0.08) 1px,
-      transparent 1px,
-      transparent 28px
-    );
-
-  /* vertical margin line */
-  background-size: 100% 30px;
-}
-.cell::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 40px; /* margin width */
-  width: 1px;
-  background: rgba(255, 80, 80, 0.4); /* soft red margin line */
-  pointer-events: none;
-}
-

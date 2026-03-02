@@ -17,9 +17,9 @@ import React, { useState, useEffect } from "react";
  */
 export default function SettingsView({
   integrations: initialIntegrations = [
-    { id: "google", name: "Google Calendar", desc: "Work calendar 路 tolu@company.com 路 Last synced 2m ago", icon: "馃摌", bg: "#EAF3FF", connected: true },
-    { id: "outlook", name: "Microsoft Outlook", desc: "Work calendar 路 tolu@company.com 路 Last synced 2m ago", icon: "馃摟", bg: "#EAF3FF", connected: true },
-    { id: "icloud", name: "Apple iCloud Calendar", desc: "Personal 路 Not connected", icon: "馃崕", bg: "#F2F2F7", connected: false },
+    { id: "google", name: "Google Calendar", desc: "Work calendar tolu@company.com  Last synced 2m ago", icon: "", bg: "#EAF3FF", connected: true },
+    { id: "outlook", name: "Microsoft Outlook", desc: "Work calendar tolu@company.com  Last synced 2m ago", icon: "", bg: "#EAF3FF", connected: true },
+    { id: "icloud", name: "Apple iCloud Calendar", desc: "Personal  Not connected", icon: "", bg: "#F2F2F7", connected: false },
   ],
   onClose,
   onConnectIntegration = (id) => {},
@@ -33,7 +33,7 @@ export default function SettingsView({
   locations: initialLocations = [
     { id: "home", label: "Home", value: "Wesley Chapel, FL 33544" },
     { id: "office", label: "Office", value: "4830 W Kennedy Blvd, Tampa, FL" },
-    { id: "current", label: "Current Location", value: "Wesley Chapel, FL 路 Updated 1m ago" },
+    { id: "current", label: "Current Location", value: "Wesley Chapel, FL Updated 1m ago" },
   ],
   onUpdateLocation = (id) => {},
 }) {
@@ -73,7 +73,7 @@ export default function SettingsView({
   function handleConnect(id) {
     const item = integrations.find((i) => i.id === id);
     if (item?.connected) {
-      onShowNotif(item.name, "Already connected 鈥?syncing every 5 min.", "g");
+      onShowNotif(item.name, "Already connected syncing every 5 min.", "g");
       return;
     }
     // optimistic UI
@@ -104,15 +104,15 @@ export default function SettingsView({
     onUpdateLocation(id);
     // optionally update UI (simulate)
     setLocations((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, value: l.value + " 路 Updated now" } : l))
+      prev.map((l) => (l.id === id ? { ...l, value: l.value + "Updated now" } : l))
     );
   }
 
   return (
     <div className="settingsView settings-header" id="settings-view" style={{ display: 'flex'}} >
 	<div  className="settings-x"   style={{ marginLeft: 'auto', cursor: 'pointer' }}    role="button"     aria-label="Close settings"
-    tabIndex={0}    onKeyDown={(e) => e.key === 'Enter' && onClose()}>
-    鉁?
+    tabIndex={0}    onKeyDown={(e) => e.key === 'Enter' && onClose()} onClick={onClose}>
+    X
 	</div>
 
 
@@ -120,7 +120,7 @@ export default function SettingsView({
       <div className="scard">
         <div className="scard-hdr">
           <div>
-            <div className="scard-title"><span> 馃搮Calendar Integrations</span></div>
+            <div className="scard-title"><span>Calendar Integrations</span></div>
             <div className="scard-sub">Sync your calendars so tasks appear on your board</div>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function SettingsView({
                 className={`connect-btn ${intg.connected ? "connected" : "disconnected"}`}
                 onClick={() => handleConnect(intg.id)}
               >
-                {intg.connected ? "鉁?Connected" : "Connect"}
+                {intg.connected ? "Connected" : "Connect"}
               </button>
             </div>
           ))}
@@ -148,7 +148,7 @@ export default function SettingsView({
       <div className="scard">
         <div className="scard-hdr">
           <div>
-            <div className="scard-title">馃捈 Work Hours</div>
+            <div className="scard-title">Work Hours</div>
             <div className="scard-sub">Paulean won't book personal appointments in these windows without asking</div>
           </div>
           <button className="btn-blue" style={{ padding: "6px 14px", fontSize: 12 }} onClick={handleSaveWorkHours}>
@@ -200,7 +200,7 @@ export default function SettingsView({
       <div className="scard">
         <div className="scard-hdr">
           <div>
-            <div className="scard-title">鉁?Paulean for Work</div>
+            <div className="scard-title">Paulean for Work</div>
             <div className="scard-sub">Let Paulean manage tasks from your work calendar</div>
           </div>
         </div>
@@ -218,7 +218,7 @@ export default function SettingsView({
 
           {workPaulean && (
             <div className="work-warning" id="work-warning-shown" style={{ marginTop: 10 }}>
-              <div className="work-warning-title">鈿狅笍 Work tasks enabled</div>
+              <div className="work-warning-title">Work tasks enabled</div>
               <div className="work-warning-desc">Paulean can see your work calendar. It will ask before acting on any work task unless you've set it to auto-handle low-stakes tasks (scheduling, research, email drafts). Work tasks are shown in purple on your board and labeled "Work".</div>
             </div>
           )}
@@ -249,7 +249,7 @@ export default function SettingsView({
       <div className="scard" id="settings-location">
         <div className="scard-hdr">
           <div>
-            <div className="scard-title">馃搷 Location &amp; Travel</div>
+            <div className="scard-title">Location &amp; Travel</div>
             <div className="scard-sub">Paulean uses location to optimize your schedule and alert you about traffic</div>
           </div>
         </div>
@@ -257,7 +257,7 @@ export default function SettingsView({
         <div className="scard-body">
           {locations.map((loc) => (
             <div className="loc-field" key={loc.id} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <div className="loc-field-icon" style={{ fontSize: 20 }}>{loc.id === "home" ? "馃彔" : loc.id === "office" ? "馃捈" : "馃搷"}</div>
+              <div className="loc-field-icon" style={{ fontSize: 20 }}>{loc.id === "home" ? "" : loc.id === "office" ? "" : ""}</div>
               <div className="loc-field-info">
                 <div className="loc-field-label">{loc.label}</div>
                 <div className="loc-field-val">{loc.value}</div>

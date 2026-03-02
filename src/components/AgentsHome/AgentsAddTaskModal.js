@@ -4,7 +4,6 @@ import {useUserTasks} from './UserTasksContext'
 import { useAuth } from './auth/AuthContext';
 import { useUserProfile } from "./UserProfileContext";
 import SmallMessageModal from '../utils/SmallMessageModal';
-import Login from './auth/Login';
 
 
 export default function AddTaskModal({
@@ -28,8 +27,6 @@ export default function AddTaskModal({
   const { profile} = useUserProfile();
   const [delegatedToPaulean,setDelegatedToPaulean]=useState(false);
   const [open,setOpen]=useState(true);
-  const [loginClicked, setLoginClicked]=useState(false);
-  const [invalidTitle ,setInvalidTitle]=useState(null);
  
 
   
@@ -43,7 +40,6 @@ export default function AddTaskModal({
 	var minutes = String(d.getMinutes()).padStart(2, "0");
 	
 	// Round to nearest 30 minutes
-	/*
 	if (minutes < 15) {
 		minutes = "00";
 	} else if (minutes < 45) {
@@ -52,10 +48,8 @@ export default function AddTaskModal({
 		minutes = "00";
 		hours += 1;
 	}
-	*/
 
 	return `${year}-${month}-${day}T${hours}:${minutes}`;
-
 }
 
 	const [dateTime, setDateTime] = useState(defaultDateTime||getTodayLocalISO());
@@ -111,7 +105,6 @@ export default function AddTaskModal({
       // simple validation: require title
       const el = document.querySelector(".modal-title-inp");
       if (el) el.focus();
-	  setInvalidTitle(true);
       return;
     }
 	console.log(`in AddTskModal date time: ${task.dateTime}`);
@@ -241,31 +234,43 @@ const handleDelegateTask = () => {setDelegatedToPaulean(true)}
 			onClose={onClose}
 			style={{ background: "#f4d03f" }}
 			>
-			<div className="auth-box">
 			<span>Kindly Login or Sign up to proceed</span>
-			<button
-            onClick={() => setLoginClicked(true)}
-            className="loginLogout login"
-             >
-            Login / Sign Up
-           </button>
-		   </div>
-		   {loginClicked && (<Login onClose={onClose} />)}
-		</SmallMessageModal>
-		)}
-	 {invalidTitle && (
-		<SmallMessageModal
-			open={invalidTitle}
-			autoCloseMs={1200}
-			onClose={() => setInvalidTitle(false)}
-			style={{ background: "#f4d03f" }}
-			>
-			<div className="auth-box">
-			  <span>Kindly enter what needs to be done</span>
-		    </div>
 		</SmallMessageModal>
 		)}
     </div>
   );
 }
 
+/*
+// in App.jsx or parent component
+import React, { useState } from "react";
+import AddTaskModal from "./components/AddTaskModal";
+
+function App() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [tasks, setTasks] = useState([]);
+
+  function handleAdd(task) {
+    setTasks((t) => [task, ...t]);
+    console.log("Added task", task);
+  }
+
+  function handleDelegate(task) {
+    // call delegate API or mark task for Paulean
+    console.log("Delegate to Paulean:", task);
+  }
+
+  return (
+    <>
+      <button onClick={() => setModalOpen(true)}>Open Add Task</button>
+      <AddTaskModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onAdd={handleAdd}
+        onDelegate={handleDelegate}
+        defaultDateTime="2026-02-20T14:00"
+      />
+    </>
+  );
+}
+*/

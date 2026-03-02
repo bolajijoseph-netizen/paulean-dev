@@ -7,7 +7,7 @@ import { UserTasksProvider } from './components/UserTasksContext';
 import Home from './Home';
 
 // global styles
-import './styles/global.css';
+//import './styles/global.css';
 
 function App() {
   return (
