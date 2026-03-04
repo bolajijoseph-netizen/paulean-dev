@@ -13,10 +13,7 @@ export function UserTasksProvider({ children }) {
   const {userId, setUserId } = useState(null);
 
 useEffect(() => {
- if (!user) {
-    //setLoading(true);
-    return;
-    }
+ if (!user) {return;}
   setUserId(user.uid);  
 }, [user]);
 
