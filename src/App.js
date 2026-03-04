@@ -22,10 +22,9 @@ function App() {
 
 
 function AppWithAuth() {
-	const { user } = useAuth();
     return (
     <UserProfileProvider>
-      <UserTasksProvider userId={user?.uid || ""}>
+      <UserTasksProvider>
 	  <Home />
       </UserTasksProvider>
     </UserProfileProvider>
