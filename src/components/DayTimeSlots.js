@@ -15,7 +15,7 @@ export default function DayTimeSlots({
 const [addTaskModal,setAddTaskModal]=useState(false);
 const [defaultDateTime,setDefaultDateTime]=useState(false);
 const [tasks, setTasks]=useState([]);
-const {moveTaskTime} = useUserTasks();
+const {moveTaskTo,moveTaskTime} = useUserTasks();
 
 
 const DAY_START = "07:00";      // always fixed
@@ -117,7 +117,7 @@ const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(
   
   
   useEffect(() => {
-	var tasks=inTasks.map((t,id) =>
+	var tasks=inTasks..filter((t) => t.currentPlan === "today").map((t,id) =>
 						{var taskTimes=roundToNearestHalfHour(t.dateTime,t.duration);
 						return { ...t,startAt:taskTimes.startTime,endAt:taskTimes.endTime,durationMinutes:taskTimes.durationMinutes};
 						});
@@ -182,7 +182,9 @@ const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(
   console.log('In handleDropOnTimeline');
 
   const taskId = e.dataTransfer.getData("taskId");
-  const task = tasks.find(t => t.id === taskId);
+  const task = inTasks.find(t => t.id === taskId);
+
+if(task.currentPlan !=="today") moveTaskTo(task,"today");
 
   const rect = e.currentTarget.getBoundingClientRect();
   const offsetY = e.clientY - rect.top; // px from top of timeline
