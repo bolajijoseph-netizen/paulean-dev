@@ -1,5 +1,6 @@
 import React,{useState,useEffect} from "react";
-import {useUserTasks} from './UserTasksContext'
+import {useUserTasks} from './UserTasksContext';
+import { userKanbanColumns, durationOptions } from '../utils/data';;
 
 export default function TaskDetailModal({
   open,
@@ -154,6 +155,25 @@ function formatPrettyDate(d) {
           />
 		  <sup style={{ fontSize: '0.55em', color: 'green' }}>  {task.percentComplete}</sup>
 		  </div>
+
+		<div>
+				
+		  <label className="mrow-lbl">Move To :</label>
+		  <select
+              className="msel"
+              value={task.currentPlan}
+              onChange={(e) => handleChange({ currentPlan: e.target.value })}
+            >
+             {userKanbanColumns.map((opt) => (
+			<option key={opt.value} value={opt.value}>
+				{opt.label}
+			</option>
+			))}
+
+            </select>
+			
+			
+		  </div>	
 
 
           <div className="mdivider"></div>
