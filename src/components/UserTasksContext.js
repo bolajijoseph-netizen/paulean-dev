@@ -99,7 +99,7 @@ useEffect(() => {
   });
 
   return () => unsubscribe();
-}, [userId]);
+}, [user]);
 
   // ---------------------------------------------------
   // ADD TASK
@@ -234,6 +234,7 @@ const deleteTask = async (taskId) => {
   
   // NEW: Load a request from Firestore
   const loadUserTasks = async (user) => {
+	  if(!user) return;
   try {
     // Build a query to get all flightRequests for this userId
     const q = query(collection(db, 'userTasks'), where('userId', '==', user.uid));
@@ -250,7 +251,7 @@ const deleteTask = async (taskId) => {
       console.log("User tasks loaded:", tasks);
 	 										
     } else {
-      console.log("No tasks found for userId:", userId);
+      console.log("No tasks found for user");
     }
   } catch (err) {
     console.error("Error loading User tasks:", err);
