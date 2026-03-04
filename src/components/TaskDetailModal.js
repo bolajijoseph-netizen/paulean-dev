@@ -105,7 +105,19 @@ function formatPrettyDate(d) {
           <div className="mrow">
             <div className="mrow-ic">⏱</div>
             <div className="mrow-lbl">Duration</div>
-            <div className="mrow-val tap">{task.duration}</div>
+			
+            <select
+              className="msel"
+              value={task.duration}
+              onChange={(e) => handleChange({ duration: e.target.value })}
+            >
+              <option>10 min</option>
+              <option>15 min</option>
+              <option>30 min</option>
+              <option>1 hour</option>
+              <option>2 hours</option>
+            </select>
+    
           </div>
 
           <div className="mrow">
