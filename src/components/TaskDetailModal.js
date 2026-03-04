@@ -148,12 +148,12 @@ function formatPrettyDate(d) {
 		  <label className="mrow-lbl">%Complete:</label>
 		  <input
             className="modal-title-inp"
-            value={task.percentComplete || ""}
+            value={task.done?100:task.percentComplete ||""}
 			type="range"
 			min="0" max="100"
             onChange={(e) => handleChange({ percentComplete: e.target.value })}
           />
-		  <sup style={{ fontSize: '0.55em', color: 'green' }}>  {task.percentComplete}</sup>
+		  <sup style={{ fontSize: '0.55em', color: 'green' }}>  {task.done?100:task.percentComplete}</sup>
 		  </div>
 
 		<div>
