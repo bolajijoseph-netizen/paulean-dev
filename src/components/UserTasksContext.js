@@ -14,6 +14,7 @@ export function UserTasksProvider({ children }) {
 
 useEffect(() => {
  if (!user) {return;}
+ console.log(user);
   setUserId(user.uid);  
 }, [user]);
 
