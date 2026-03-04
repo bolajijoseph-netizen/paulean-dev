@@ -58,7 +58,7 @@ function getPlan(dateString) {
       >
         {/* TODAY COLUMN USES TIMELINE */}
         {col.id === "today" && (
-          <DayTimeSlots handlers={handlers} inTasks={tasks.filter((t) => t.currentPlan === "today")} />
+          <DayTimeSlots handlers={handlers} inTasks={tasks} />
         )}
 
         {/* ALL OTHER COLUMNS USE NORMAL TASKCARDS */}
