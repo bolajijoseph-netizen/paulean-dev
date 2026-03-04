@@ -1,14 +1,24 @@
 import React, { createContext, useContext, useEffect, useState,useMemo } from "react";
 import {collection, doc, addDoc, getDocs,setDoc,updateDoc,deleteDoc,Timestamp, serverTimestamp, query, where,  onSnapshot} from "firebase/firestore";
 import { db } from './auth/firebaseConfig'; // adjust path
+import { useAuth } from "./auth/AuthContext";
 
 
 const UserTasksContext = createContext();
 
-export function UserTasksProvider({ userId, children }) {
+export function UserTasksProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const { user, authLoading } = useAuth();
+  const {userId, setUserId } = useState(null);
+
+if (!user) {
+    //setLoading(true);
+    return;
+  }
+  setUserId(user.uid);  
+}, [user]);
+
  
    // ---------------------------------------------------
   // EXPOSE LATEST MESSAGE
@@ -60,26 +70,35 @@ export function UserTasksProvider({ userId, children }) {
   // ---------------------------------------------------
   // REAL-TIME SUBSCRIPTION
   // ---------------------------------------------------
+  // ---------------------------------------------------
+  // REAL-TIME SUBSCRIPTION
+  // ---------------------------------------------------
   useEffect(() => {
-    if (!userId) return;
+  // If no userId yet (auth still loading), reset state and do nothing
+  if (!userId) {
+    setTasks([]);
+    //setLoading(true);
+    return;
+  }
 
-    const q = query(
-      collection(db, "userTasks"),
-      where("userId", "==", userId)
-    );
+  // When userId becomes available, subscribe to Firestore
+  const q = query(
+    collection(db, "userTasks"),
+    where("userId", "==", userId)
+  );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const list = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
-      setTasks(list);
-      setLoading(false);
-    });
+    setTasks(list);
+    setLoading(false);
+  });
 
-    return () => unsubscribe();
-  }, [userId]);
+  return () => unsubscribe();
+}, [userId]);
 
   // ---------------------------------------------------
   // ADD TASK
