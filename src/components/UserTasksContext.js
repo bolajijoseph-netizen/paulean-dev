@@ -12,11 +12,13 @@ export function UserTasksProvider({ children }) {
   const { user, authLoading } = useAuth();
   const {userId, setUserId } = useState(null);
 
+/*
 useEffect(() => {
  if (!user) {return;}
  console.log(user);
   setUserId(user.uid);  
 }, [user]);
+*/
 
  
    // ---------------------------------------------------
@@ -74,7 +76,7 @@ useEffect(() => {
   // ---------------------------------------------------
   useEffect(() => {
   // If no userId yet (auth still loading), reset state and do nothing
-  if (!userId) {
+  if (!user) {
     setTasks([]);
     //setLoading(true);
     return;
@@ -83,7 +85,7 @@ useEffect(() => {
   // When userId becomes available, subscribe to Firestore
   const q = query(
     collection(db, "userTasks"),
-    where("userId", "==", userId)
+    where("userId", "==", user.uid)
   );
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -105,7 +107,7 @@ useEffect(() => {
   const addTask = async (taskData) => {
     const newTask = {
 	  taskId:Date.now() + "-" + Math.floor(1000 + Math.random() * 9000),
-      userId:userId,
+      userId:user.uid,
       username: taskData.username || "",
       createdDate: serverTimestamp(),
       currentPlan: taskData.currentPlan || "today",
