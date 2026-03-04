@@ -117,7 +117,7 @@ const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(
   
   
   useEffect(() => {
-	var tasks=inTasks..filter((t) => t.currentPlan === "today").map((t,id) =>
+	var tasks=inTasks.filter((t) => t.currentPlan === "today").map((t,id) =>
 						{var taskTimes=roundToNearestHalfHour(t.dateTime,t.duration);
 						return { ...t,startAt:taskTimes.startTime,endAt:taskTimes.endTime,durationMinutes:taskTimes.durationMinutes};
 						});
