@@ -88,11 +88,13 @@ useEffect(() => {
     where("userId", "==", user.uid)
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const list = snapshot.docs.map((doc) => ({
+ const unsubscribe = onSnapshot(q, (snapshot) => {
+  const list = snapshot.docs
+    .map((doc) => ({
       id: doc.id,
-      ...doc.data()
-    }));
+      ...doc.data(),
+    }))
+    .sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime)); // DESC
 
     setTasks(list);
     setLoading(false);
