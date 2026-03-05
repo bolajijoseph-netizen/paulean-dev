@@ -119,7 +119,10 @@ export default function AddTaskModal({
     onClose();
   }
 
-const handleDelegateTask = () => {setDelegatedToPaulean(true)}
+const handleDelegateTask = () => {
+	setDelegatedToPaulean(true);
+	setCurrentPlan('paulean');
+	}
   
   return (
     <div
