@@ -131,7 +131,7 @@ const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(
 
   const lanes = [];
 
-  // 1. Assign lane index to each task
+ // 1. Assign lane index to each task
   sorted.forEach((task) => {
     const start = toMinutes(task.startAt);
     const end = toMinutes(task.endAt);
@@ -158,7 +158,24 @@ const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(
       laneIndex++;
     }
 
-    tas
+    task.lane = laneIndex;
+  });
+
+  // 2. Compute total lanes *per task* (not global)
+  sorted.forEach((task) => {
+    const start = toMinutes(task.startAt);
+    const end = toMinutes(task.endAt);
+
+    const overlappingLaneCount = lanes.filter((lane) =>
+      lane.some((t) => start < t.end && end > t.start)
+    ).length;
+
+    task.totalLanes = overlappingLaneCount || 1;
+  });
+
+  return sorted;
+}, [tasks]);
+  
   
   const handleAddTaskModal =(slot) => {
 	setDefaultDateTime(fn_defaultDateTime(slot));
