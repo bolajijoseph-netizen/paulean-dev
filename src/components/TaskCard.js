@@ -16,6 +16,10 @@ export default function TaskCard({ task, onOpen, draggableProps }) {
 			y: 0,
 			task: null
 			});
+
+useEffect(() => {
+  setLocalTask(task);	 
+ },[task]);
 			
 const onClose = () => {setContextMenu(prev => ({...prev,visible: false  }));};
 
