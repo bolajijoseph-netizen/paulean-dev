@@ -21,6 +21,11 @@ export default function Sidebar({ onNav, isMobile,onTogglePP, onOpenDelegate, ac
   
   
   const {tasks} = useUserTasks();
+
+ useEffect(() => {
+	 fn_getUserLocation(); 
+  },[]);
+  
   
   useEffect(() => {
 	setTodayTasks(tasks.filter(t=>t.currentPlan=='today').length);
@@ -31,8 +36,60 @@ export default function Sidebar({ onNav, isMobile,onTogglePP, onOpenDelegate, ac
   const handleLoginComplete = () => {
     setLoginClicked(false);
   };
-	
-console.log("isMobile:", isMobile);
+
+async function getLocation() {
+  if (!navigator.geolocation) {
+    console.log("Geolocation not supported");
+    return null;
+  }
+
+  try {
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject);
+    });
+
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+
+    console.log("Latitude:", lat);
+    console.log("Longitude:", lng);
+
+    const location = await reverseGeocode(lat, lng);
+    console.log(location);
+
+    return location;
+
+  } catch (error) {
+    console.error("Location error:", error);
+    return null;
+  }
+}
+
+
+async function reverseGeocode(lat, lng) {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+  );
+
+  const data = await res.json();
+
+  const city =
+    data.address.city ||
+    data.address.town ||
+    data.address.village;
+
+  const state = data.address.state;
+  const country = data.address.country;
+  
+return `${city},${state}.${country}`
+
+} 
+
+const fn_getUserLocation = () =>{
+getLocation().then(loc =>{
+	setUserLocation(loc);
+});
+}
 
 
   return (
@@ -79,7 +136,7 @@ console.log("isMobile:", isMobile);
 
       <div className="loc-chip" onClick={() => onNav('settings')}>
         <div className="loc-dot" />
-        <div className="loc-text"> Wesley Chapel, FL</div>
+        <div className="loc-text"> <b>{userLocation}</b></div>
         <div className="loc-edit-sm">Edit</div>
       </div>
 
