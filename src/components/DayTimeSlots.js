@@ -124,50 +124,41 @@ const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(
    setTasks(tasks);
   }, [inTasks]);
 
-  const tasksWithLanes = React.useMemo(() => {
-	
-    const sorted = [...tasks].sort(
-      (a, b) => toMinutes(a.startAt) - toMinutes(b.startAt)
-    );
-	
-	
+   const tasksWithLanes = React.useMemo(() => {
+  const sorted = [...tasks].sort(
+    (a, b) => toMinutes(a.startAt) - toMinutes(b.startAt)
+  );
 
-    const lanes = [];
+  const lanes = [];
 
-    sorted.forEach((task) => {
-      const start = toMinutes(task.startAt);
-      const end = toMinutes(task.endAt);
+  // 1. Assign lane index to each task
+  sorted.forEach((task) => {
+    const start = toMinutes(task.startAt);
+    const end = toMinutes(task.endAt);
 
-      let laneIndex = 0;
+    let laneIndex = 0;
 
-      while (true) {
-        const lane = lanes[laneIndex];
+    while (true) {
+      const lane = lanes[laneIndex];
 
-        if (!lane) {
-          lanes[laneIndex] = [{ start, end }];
-          break;
-        }
-
-        const overlaps = lane.some(
-          (t) => start < t.end && end > t.start
-        );
-
-        if (!overlaps) {
-          lane.push({ start, end });
-          break;
-        }
-
-        laneIndex++;
+      if (!lane) {
+        lanes[laneIndex] = [{ start, end }];
+        break;
       }
 
-      task.lane = laneIndex;
-    });
+      const overlaps = lane.some(
+        (t) => start < t.end && end > t.start
+      );
 
-    const maxLane = Math.max(...sorted.map((t) => t.lane), 0);
-    sorted.forEach((t) => (t.totalLanes = maxLane + 1));
+      if (!overlaps) {
+        lane.push({ start, end });
+        break;
+      }
 
-    return sorted;
-  }, [tasks]);
+      laneIndex++;
+    }
+
+    tas
   
   const handleAddTaskModal =(slot) => {
 	setDefaultDateTime(fn_defaultDateTime(slot));
@@ -235,7 +226,7 @@ function computeOverlaps(tasks) {
 
 	
 setTasks(prev => {
-  // 1. Update the changed task
+  // 1. Update the changed task's dateTime
   const updated = prev.map(t =>
     t.taskId === task.taskId
       ? { ...t, dateTime }
@@ -244,37 +235,68 @@ setTasks(prev => {
 
   // 2. Normalize times
   const withTimes = updated.map(t => {
-    const { startTime, endTime } = roundToNearestHalfHour(t.dateTime, t.duration);
+    const { startTime, endTime, durationMinutes } =
+      roundToNearestHalfHour(t.dateTime, t.duration);
     return {
       ...t,
       startAt: startTime,
-      endAt: endTime
+      endAt: endTime,
+      durationMinutes
     };
   });
 
-  // 3. Recompute overlaps
+  // 3. Recompute lanes + per-task totalLanes
   const sorted = [...withTimes].sort(
     (a, b) => toMinutes(a.startAt) - toMinutes(b.startAt)
   );
 
   const lanes = [];
-  const withOverlaps = sorted.map(task => {
+
+  sorted.forEach((task) => {
     const start = toMinutes(task.startAt);
     const end = toMinutes(task.endAt);
 
-    let laneIndex = lanes.findIndex(laneEnd => laneEnd <= start);
-    if (laneIndex === -1) {
-      laneIndex = lanes.length;
-      lanes.push(end);
-    } else {
-      lanes[laneIndex] = end;
+    let laneIndex = 0;
+
+    while (true) {
+      const lane = lanes[laneIndex];
+
+      if (!lane) {
+        lanes[laneIndex] = [{ start, end }];
+        break;
+      }
+
+      const overlaps = lane.some(
+        (t) => start < t.end && end > t.start
+      );
+
+      if (!overlaps) {
+        lane.push({ start, end });
+        break;
+      }
+
+      laneIndex++;
     }
 
-    return { ...task, lane: laneIndex };
+    task.lane = laneIndex;
+  });
+  
+  
+  console.log('In computing lanes');
+  console.log(lanes);
+
+  sorted.forEach((task) => {
+    const start = toMinutes(task.startAt);
+    const end = toMinutes(task.endAt);
+
+    const overlappingLaneCount = lanes.filter((lane) =>
+      lane.some((t) => start < t.end && end > t.start)
+    ).length;
+
+    task.totalLanes = overlappingLaneCount || 1;
   });
 
-  const maxLane = Math.max(...withOverlaps.map(t => t.lane), 0);
-  return withOverlaps.map(t => ({ ...t, totalLanes: maxLane + 1 }));
+  return sorted;
 });
 
 
