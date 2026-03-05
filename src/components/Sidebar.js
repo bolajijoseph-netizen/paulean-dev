@@ -89,7 +89,7 @@ console.log("isMobile:", isMobile);
           <div className="paulean-label">Paulean Active</div>
           <div className="paulean-count">{activePauleanTasks} active</div>
         </div>
-        <div className="paulean-desc" style={{ color: 'var(--red)' }}>⚠ 1 conflict needs reply</div>
+       {/* <div className="paulean-desc" style={{ color: 'var(--red)' }}>⚠ 1 conflict needs reply</div> */}
       </div>
 
       <div className="delegate-quick-btn" onClick={onOpenDelegate}>
