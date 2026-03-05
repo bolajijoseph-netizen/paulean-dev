@@ -127,6 +127,7 @@ export default function Home() {
   let m= now.getMinutes();
 
   // Round to nearest 30 minutes
+/*
   if (m < 15) {
     m = 0;
   } else if (m < 45) {
@@ -135,6 +136,7 @@ export default function Home() {
     m = 0;
     h += 1;
   }
+  */
 
   //return new Date(year, month, day, h, m, 0, 0);
   return `${year}-${month}-${day}T${h}:${m}`;
@@ -207,7 +209,7 @@ const isPhone = getDeviceType()=='phone';
 	{delegateTask && (
 	 <DelegateTaskModal
         open={delegateTask}
-        defaultDeadline="2026-02-28T17:00"
+        defaultDeadline={fn_defaultDateTime()}
         onClose={() => setDelegateTask(false)}
         onSubmit={handleSubmitDelegate}
       />
