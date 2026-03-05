@@ -1,9 +1,23 @@
 // src/components/DelegateTaskModal.jsx
 import React, { useEffect, useRef, useState } from "react";
 
+function getTodayLocalISO() {
+	const d = new Date();
+
+	const year = d.getFullYear();
+	const month = String(d.getMonth() + 1).padStart(2, "0");
+	const day = String(d.getDate()).padStart(2, "0");
+	var hours = String(d.getHours()).padStart(2, "0");
+	var minutes = String(d.getMinutes()).padStart(2, "0");
+
+	return `${year}-${month}-${day}T${hours}:${minutes}`;
+
+}
+
+
 export default function DelegateTaskModal({
   open = false,
-  defaultDeadline = "2026-02-28T17:00",
+  defaultDeadline = getTodayLocalISO(),
   onClose = () => {},
   onSubmit = (payload) => {},
 }) {
@@ -149,7 +163,7 @@ function App() {
 
       <DelegateModal
         open={delegateOpen}
-        defaultDeadline="2026-02-28T17:00"
+        defaultDeadline={getTodayLocalISO()}
         onClose={() => setDelegateOpen(false)}
         onSubmit={handleSubmitDelegate}
       />
