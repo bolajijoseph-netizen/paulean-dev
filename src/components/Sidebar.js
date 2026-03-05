@@ -18,6 +18,7 @@ export default function Sidebar({ onNav, isMobile,onTogglePP, onOpenDelegate, ac
   const [activePauleanTasks,setActivePauleanTasks]=useState(null);
   const [pauleanTasks,setPauleanTasks]=useState(null);
   const [todayTasks,setTodayTasks]=useState(null);
+  const [userLocation, setUserLocation]=useState(null);
   
   
   const {tasks} = useUserTasks();
@@ -51,11 +52,11 @@ async function getLocation() {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
 
-    console.log("Latitude:", lat);
-    console.log("Longitude:", lng);
+    //console.log("Latitude:", lat);
+    //console.log("Longitude:", lng);
 
     const location = await reverseGeocode(lat, lng);
-    console.log(location);
+    //console.log(location);
 
     return location;
 
@@ -81,7 +82,7 @@ async function reverseGeocode(lat, lng) {
   const state = data.address.state;
   const country = data.address.country;
   
-return `${city},${state}.${country}`
+return `${city},${state}.${country}`;
 
 } 
 
