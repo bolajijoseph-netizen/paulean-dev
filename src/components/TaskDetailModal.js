@@ -71,7 +71,10 @@ function formatPrettyDate(d) {
   return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
 }
 
-
+const delegateToPaulean = () =>{
+	const updatedTask = {...task,delegatedToPaulean:true,currentPlan:"paulean"}
+	setTask(updatedTask);
+}
 
 
 
@@ -188,7 +191,7 @@ function formatPrettyDate(d) {
             <button
               className="btn-blue"
               style={{ width: "100%" }}
-              onClick={onDelegate}
+              onClick={delegateToPaulean}
             >
               ✦ Delegate to Paulean
             </button>
