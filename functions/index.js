@@ -16,6 +16,7 @@ const {getFirestore} = require("firebase-admin/firestore");
 setGlobalOptions({maxInstances: 10});
 admin.initializeApp();
 
+/*
 exports.updateIsActive = onDocumentWritten("userRequests/{id}", (event) => {
   const data = event.data.after.data();
   if (!data) return null;
@@ -52,6 +53,48 @@ exports.recomputeAgingNightly = onSchedule("0 2 * * *", async () => {
       batch.update(doc.ref, {isActive});
     }
   });
+  */
+
+/*  Tasks tasks Kanban columns.
+export const recomputeAgingNightly = onSchedule("0 2 * * *", async () => {
+  const db = getFirestore();
+
+  const snapshot = await db.collection("userTasks").get();
+  const batch = db.batch();
+
+  const now = new Date();
+
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+
+    if (!data.createdDate) return; // skip invalid docs
+
+    const created = data.createdDate.toDate();
+    const ageInDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+
+    let newPlan = null;
+
+    if (ageInDays === 1) {
+      newPlan = "yesterday";
+    } else if (ageInDays >= 2 && data.done !== true) {
+      newPlan = "backlog";
+    } else if (ageInDays >= 2 && data.done === true) {
+      newPlan = "archive";
+    }
+
+    if (newPlan && newPlan !== data.currentPlan) {
+      batch.update(doc.ref, {
+        currentPlan: newPlan,
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    }
+  });
+
+  await batch.commit();
+});
+
+
+
 
   await batch.commit();
 });
