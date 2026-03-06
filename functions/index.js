@@ -53,7 +53,10 @@ exports.recomputeAgingNightly = onSchedule("0 2 * * *", async () => {
       batch.update(doc.ref, {isActive});
     }
   });
+   await batch.commit();
+});
   */
+
 
 /*  Tasks tasks Kanban columns.
 export const recomputeAgingNightly = onSchedule("0 2 * * *", async () => {
@@ -96,5 +99,4 @@ export const recomputeAgingNightly = onSchedule("0 2 * * *", async () => {
 
 
 
-  await batch.commit();
-});
+ 
