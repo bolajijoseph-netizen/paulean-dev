@@ -72,19 +72,33 @@ export const recomputeAgingNightly = onSchedule("0 2 * * *", async () => {
 
     if (!data.createdDate) return; // skip invalid docs
 
+    // Skip urgent tasks
+    if (data.urgent === true) return;
+
+    // Skip tasks delegated to Paulean
+    if (data.delegatedToPaulean === true) return;
+
     const created = data.createdDate.toDate();
     const ageInDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
 
     let newPlan = null;
 
+    // ✔️ Created yesterday
     if (ageInDays === 1) {
       newPlan = "yesterday";
-    } else if (ageInDays >= 2 && data.done !== true) {
+    }
+
+    // ✔️ Created 2+ days ago and NOT done
+    else if (ageInDays >= 2 && data.done !== true) {
       newPlan = "backlog";
-    } else if (ageInDays >= 2 && data.done === true) {
+    }
+
+    // ✔️ Created 2+ days ago and done
+    else if (ageInDays >= 2 && data.done === true) {
       newPlan = "archive";
     }
 
+    // Only update if the plan actually changes
     if (newPlan && newPlan !== data.currentPlan) {
       batch.update(doc.ref, {
         currentPlan: newPlan,
@@ -95,6 +109,7 @@ export const recomputeAgingNightly = onSchedule("0 2 * * *", async () => {
 
   await batch.commit();
 });
+
 
 
 
