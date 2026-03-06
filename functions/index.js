@@ -83,17 +83,17 @@ export const recomputeAgingNightly = onSchedule("0 2 * * *", async () => {
 
     let newPlan = null;
 
-    // ✔️ Created yesterday
+    // Created yesterday
     if (ageInDays === 1) {
       newPlan = "yesterday";
     }
 
-    // ✔️ Created 2+ days ago and NOT done
+    // Created 2+ days ago and NOT done
     else if (ageInDays >= 2 && data.done !== true) {
       newPlan = "backlog";
     }
 
-    // ✔️ Created 2+ days ago and done
+    // Created 2+ days ago and done
     else if (ageInDays >= 2 && data.done === true) {
       newPlan = "archive";
     }
