@@ -19,6 +19,8 @@ import SettingsView from './components/SettingsView';
 import AddTaskModal from './components/AddTaskModal';
 import {useUserTasks} from './components/UserTasksContext';
 import {playNotificationTone} from './utils/soundUtil';
+import ArchiveTasksPanel from './components/ArchiveTasksPanel';
+import TaskDetailModal from './components/TaskDetailModal';
 
 
 
@@ -43,6 +45,9 @@ export default function Home() {
   const [openPhoneSideBar, setopenPhoneSideBar]=useState(false);
   const [isMobile, setIsMobile]=useState(false);
   const [draggedTask,setDraggedTask]=useState(null);
+  const [openArchivePanel, setOpenArchivePanel] = useState(false);
+  const [openArchive, setOpenArchive] = useState(false);
+  const [archivedTask, setArchivedTask] = useState('');
   
   useEffect(() => {
   if (!latestMessage) return;
@@ -70,6 +75,9 @@ export default function Home() {
     onDragEnd: () => {},
     onDragOver: (e, colId) => e.preventDefault(),
     onDrop: (e,colId) => {
+		console.log('In onDrop');
+		console.log(draggedTask);
+		console.log(colId);
 	  moveTaskTo(draggedTask,colId);
     },
     onContextMenu: (e, task) => {
@@ -127,7 +135,7 @@ export default function Home() {
   let m= now.getMinutes();
 
   // Round to nearest 30 minutes
-/*
+  /*
   if (m < 15) {
     m = 0;
   } else if (m < 45) {
@@ -135,8 +143,7 @@ export default function Home() {
   } else {
     m = 0;
     h += 1;
-  }
-  */
+  } */
 
   //return new Date(year, month, day, h, m, 0, 0);
   return `${year}-${month}-${day}T${h}:${m}`;
@@ -159,7 +166,10 @@ export default function Home() {
 const isDesktop = getDeviceType()=='desktop';
 const isPhone = getDeviceType()=='phone';
 
-
+const handleOpenArchive = (task) => {
+	setArchivedTask(task);
+	setOpenArchive(true);
+}
 
   return (
 	<div>
@@ -189,8 +199,10 @@ const isPhone = getDeviceType()=='phone';
     />
 	</div>
     <div className="app">
-	  <Sidebar onNav={setView} isMobile={isMobile} onClose={() => setIsMobile(false)} onTogglePP={() => setPauleanOpen(v => !v)} onOpenDelegate={() => setDelegateTask(true)} active={view==='board' ? 'board' : view} />
+	  <Sidebar onNav={setView} isMobile={isMobile} onClose={() => setIsMobile(false)} onTogglePP={() => setPauleanOpen(v => !v)} 
+	  onOpenDelegate={() => setDelegateTask(true)} active={view==='board' ? 'board' : view} onToggleArchive={() => setOpenArchivePanel(v => !v)} />
       <PauleanPanel open={pauleanOpen} onClose={() => setPauleanOpen(false)} tasks={tasks.filter(t => t.delegatedToPaulean)} openChat={openChat} />
+	  <ArchiveTasksPanel open={openArchivePanel} onClose={() => setOpenArchivePanel(false)} onOpenArchive={handleOpenArchive} tasks={tasks.filter(t => t.currentPlan=='archive')} />
 	  {view==='settings' &&(<SettingsView
 	  onClose={() => setView('board')}
       onConnectIntegration={connectCal}
@@ -225,6 +237,7 @@ const isPhone = getDeviceType()=='phone';
       />
 	
 	)}
+	{openArchive && (< TaskDetailModal open={openArchive} inTask={archivedTask} onClose={() => setOpenArchive(false)} readOnly={true} />)}
 	</div>
   );
 }

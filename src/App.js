@@ -4,6 +4,7 @@ import { AuthProvider } from './components/auth/AuthContext';
 import { useAuth } from './components/auth/AuthContext';
 import { UserProfileProvider} from './components/UserProfileContext';
 import { UserTasksProvider } from './components/UserTasksContext';
+import { ToastProvider } from './components/ToastContext';
 import Home from './Home';
 
 // global styles
@@ -19,13 +20,15 @@ function App() {
   );
 }
 
-
-
 function AppWithAuth() {
     return (
     <UserProfileProvider>
       <UserTasksProvider>
+	  <ToastProvider>
+	  
 	  <Home />
+	  
+	  </ToastProvider>
       </UserTasksProvider>
     </UserProfileProvider>
   );
