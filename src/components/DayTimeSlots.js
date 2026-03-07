@@ -3,24 +3,33 @@ import TimeSlotCard from './TimeSlotCard';
 import AddTaskModal from './AddTaskModal';
 import {useUserTasks} from './UserTasksContext'
 
+
+
+
+
+
 export default function DayTimeSlots({
-  dayStartAt = "07:00",
-  dayEndAt = "19:00",
+  dayStartAt = "00:00", //"07:00" -"19:00"
+  dayEndAt = "25:00",
   slotMinutes = 30,
   slotHeight = 40,
   inTasks = [],
+  allTasks = [],
   renderTask,
   handlers
 }) {
 const [addTaskModal,setAddTaskModal]=useState(false);
 const [defaultDateTime,setDefaultDateTime]=useState(false);
 const [tasks, setTasks]=useState([]);
-const {moveTaskTo,moveTaskTime} = useUserTasks();
+const {updateTask,moveTaskTo,moveTaskTime} = useUserTasks();
+//const [height,setHeight]=useState(null);
 
 
 const DAY_START = "07:00";      // always fixed
 const SLOT_HEIGHT = 40;         // px per slot
 const SLOT_MINUTES = 30;        // minutes per slot
+const PIXELS_PER_MINUTE = 1.33  //px per minute
+
 
   const toMinutes = (t) => {
 	if(t){
@@ -36,7 +45,7 @@ const DAY_START_MIN = toMinutes(DAY_START)
    
 function roundToNearestHalfHour(dateString, duration) {
 	
-const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(duration) * 60;
+const durationMinutes =  duration.includes("min")? parseFloat(duration.match(/[\d.]+/)[0]): parseFloat(duration.match(/[\d.]+/)[0]) * 60;
 
 
   const date = new Date(dateString);
@@ -124,14 +133,15 @@ const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(
    setTasks(tasks);
   }, [inTasks]);
 
-   const tasksWithLanes = React.useMemo(() => {
+  
+  const tasksWithLanes = React.useMemo(() => {
   const sorted = [...tasks].sort(
     (a, b) => toMinutes(a.startAt) - toMinutes(b.startAt)
   );
 
   const lanes = [];
 
- // 1. Assign lane index to each task
+  // 1. Assign lane index to each task
   sorted.forEach((task) => {
     const start = toMinutes(task.startAt);
     const end = toMinutes(task.endAt);
@@ -188,11 +198,16 @@ const durationMinutes =  duration.includes("min")? parseInt(duration): parseInt(
 
   
   console.log('In handleDropOnTimeline');
+  console.log(e);
 
   const taskId = e.dataTransfer.getData("taskId");
   const task = inTasks.find(t => t.id === taskId);
-
-if(task.currentPlan !=="today") moveTaskTo(task,"today");
+  console.log(taskId);
+  console.log(task);
+  
+  
+  if(task.currentPlan !=="today") moveTaskTo(task,"today");
+  
 
   const rect = e.currentTarget.getBoundingClientRect();
   const offsetY = e.clientY - rect.top; // px from top of timeline
@@ -201,6 +216,9 @@ if(task.currentPlan !=="today") moveTaskTo(task,"today");
 }
 
 function updateTaskTimeFromDrop(task, offsetY) {
+	console.log('In updateTaskTimeFromDrop');
+	console.log(task);
+	console.log(tasks);
   // Convert px → minutes from day start
   const minutesFromStart = (offsetY / SLOT_HEIGHT) * SLOT_MINUTES;
 
@@ -241,7 +259,6 @@ function computeOverlaps(tasks) {
 }
 
 
-	
 setTasks(prev => {
   // 1. Update the changed task's dateTime
   const updated = prev.map(t =>
@@ -311,6 +328,7 @@ setTasks(prev => {
     ).length;
 
     task.totalLanes = overlappingLaneCount || 1;
+	//task.totalLanes = 2;
   });
 
   return sorted;
@@ -320,7 +338,8 @@ setTasks(prev => {
  
 }
 
- 
+const handleResize = (height) =>{};
+
 
   return (
     <div className="timeline-day thin-scroll" style={{ overflowY: "auto", height: "100%" }}>
@@ -388,11 +407,13 @@ setTasks(prev => {
             const top = (startMin - dayStartMin) / minutesPerPixel;
             //const height = (endMin - startMin) / minutesPerPixel;
 			const height = 1.3*task.durationMinutes;
+			
 
-            const width = 100 / task.totalLanes;
+            const width = 100 /task.totalLanes;
             const left = task.lane * width;
 
-            return (
+        return (
+
                <TimeSlotCard
 			   style={{
                   position: "absolute",
@@ -409,10 +430,9 @@ setTasks(prev => {
                 }}
                 key={task.taskId}
                 task={task}
-                onOpen={handlers.openDetail(true)}
+                onOpen={() => handlers.openDetail(true)}
                 onToggleDone={handlers.toggleDone}
                 draggableProps={handlers}
-				//onDragStart={() => handleDragStart(task)}
               />
             );
           })}
@@ -431,3 +451,20 @@ setTasks(prev => {
     </div>
   );
 }
+
+/*
+<Rnd
+				disableDragging={true}
+				enableResizing={{
+				bottom: true,
+				top: false,
+				left: false,
+				right: false,
+				bottomLeft: false,
+				bottomRight: false,
+				topLeft: false,
+				topRight: false
+				}}
+				onResizeStop={(e, direction, ref) => {handleResizeStop(e, direction, ref,task)}}
+				>
+*/

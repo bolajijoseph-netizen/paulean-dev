@@ -87,7 +87,7 @@ async function reverseGeocode(lat, lng) {
   
   //console.log(`${city},${state}. ${country}`);
   
-return `${city},${state}.${country}`
+return `${city}, ${state}. ${country}`
 
 } 
 
@@ -191,6 +191,8 @@ getLocation().then(loc =>{
     </aside>
   );
 }
+
+
 
 
 /*

@@ -178,6 +178,7 @@ const handleDelegateTask = () => {
               <option>15 min</option>
               <option>30 min</option>
               <option>1 hour</option>
+			  <option>1.5 hours</option>
               <option>2 hours</option>
             </select>
           </div>

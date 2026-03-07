@@ -107,6 +107,47 @@ export default function SettingsView({
       prev.map((l) => (l.id === id ? { ...l, value: l.value + "Updated now" } : l))
     );
   }
+  
+  function getLocation() {
+  if (!navigator.geolocation) {
+    console.log("Geolocation not supported");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      console.log("Latitude:", lat);
+      console.log("Longitude:", lng);
+
+      reverseGeocode(lat, lng);
+    },
+    (error) => {
+      console.error("Location error:", error);
+    }
+  );
+}
+
+async function reverseGeocode(lat, lng) {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+  );
+
+  const data = await res.json();
+
+  const city =
+    data.address.city ||
+    data.address.town ||
+    data.address.village;
+
+  const state = data.address.state;
+  const country = data.address.country;
+  
+return `${city}, ${state}. $[country}`
+
+}
 
   return (
     <div className="settingsView settings-header" id="settings-view" style={{ display: 'flex'}} >
@@ -209,7 +250,7 @@ export default function SettingsView({
           <div className="toggle-row" style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <div className="toggle-info">
               <div className="toggle-label">Use Paulean for Work Tasks</div>
-              <div className="toggle-desc">Paulean will see work calendar events and ask before acting on work-related tasks. Some tasks â€?like scheduling, research, and email follow-ups â€?can be handled automatically.</div>
+              <div className="toggle-desc">Paulean will see work calendar events and ask before acting on work-related tasks. Some tasks like scheduling, research, and email follow-ups â€?can be handled automatically.</div>
             </div>
             <div className="toggle-sw">
               <div className={`sw ${workPaulean ? "on" : ""}`} id="work-toggle" onClick={() => { setWorkPaulean(!workPaulean); onToggleWorkPaulean(!workPaulean); }} />
