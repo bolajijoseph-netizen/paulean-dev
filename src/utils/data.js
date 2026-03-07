@@ -25,6 +25,7 @@ export const durationOptions = [
   { label: "15 min", value: "15 min" },
   { label: "30 min", value: "30 min" },
   { label: "1 hour", value: "1 hour"},
+  { label: "1.5 hours", value: "1.5 hours"},
   { label: "2 hours", value: "2 hours"}
 ];
 
