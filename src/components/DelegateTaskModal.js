@@ -1,5 +1,11 @@
 // src/components/DelegateTaskModal.jsx
 import React, { useEffect, useRef, useState } from "react";
+import {useUserTasks} from './UserTasksContext'
+import { useAuth } from './auth/AuthContext';
+import { useUserProfile } from "./UserProfileContext";
+import SmallMessageModal from '../utils/SmallMessageModal';
+import Login from './auth/Login';
+
 
 function getTodayLocalISO() {
 	const d = new Date();
@@ -15,28 +21,37 @@ function getTodayLocalISO() {
 }
 
 
+
 export default function DelegateTaskModal({
   open = false,
-  defaultDeadline = getTodayLocalISO(),
+  defaultDateTime = getTodayLocalISO(),
   onClose = () => {},
   onSubmit = (payload) => {},
+  defaultCurrentPlan="today",
 }) {
   const [title, setTitle] = useState("");
-  const [deadline, setDeadline] = useState(defaultDeadline || "");
+  const [dateTime, setDateTime] = useState(defaultDateTime || "");
   const [notes, setNotes] = useState("");
   const overlayRef = useRef(null);
   const titleRef = useRef(null);
+  const [duration, setDuration] = useState("30 min");
+  const [currentPlan, setCurrentPlan] = useState("paulean");
+  const { user} = useAuth();
+  const { profile} = useUserProfile();
+  const [loginClicked, setLoginClicked]=useState(false);
+  const [invalidTitle ,setInvalidTitle]=useState(null);
+  const { addTask } = useUserTasks();
+  
 
   useEffect(() => {
     if (open) {
       // reset or keep values as desired; here we reset title/notes but keep default deadline
       setTitle("");
       setNotes("");
-      setDeadline(defaultDeadline || "");
-      // focus title input after open
+      setDateTime(defaultDateTime|| "");
       setTimeout(() => titleRef.current?.focus(), 50);
     }
-  }, [open, defaultDeadline]);
+  }, [open]);
 
   useEffect(() => {
     function handleKey(e) {
@@ -46,29 +61,38 @@ export default function DelegateTaskModal({
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [open, title, deadline, notes]);
+  }, [open, title, dateTime, notes]);
 
   if (!open) return null;
 
   function handleOverlayClick(e) {
     if (e.target === overlayRef.current) onClose();
   }
-
-  function handleSubmit() {
-    const payload = {
-      id: `d-${Date.now()}`,
+  
+  function handleSubmit(){
+    const task = {
+	  taskId:Date.now() + "-" + Math.floor(1000 + Math.random() * 9000),
+	  userId: profile.uid,
+	  username:profile.firstName+" "+profile.lastName,
       title: title.trim(),
-      deadline: deadline || null,
-      notes: notes.trim() || null,
-      createdAt: new Date().toISOString(),
+      dateTime: dateTime||getTodayLocalISO(),
+      duration,
+      currentPlan,
+      notes: notes.trim(),
+	  done:false,
+	  delegatedToPaulean:true
     };
-    if (!payload.title) {
+	
+	if (!title) {
       titleRef.current?.focus();
+	  setInvalidTitle(true);
       return;
     }
-    onSubmit(payload);
+	
+	addTask(task);
     onClose();
   }
+
 
   return (
     <div
@@ -95,13 +119,13 @@ export default function DelegateTaskModal({
           </div>
 
           <div className="dm-deadline-row">
-            <span className="dm-deadline-label">📅 Deadline</span>
+            <span className="dm-deadline-label">📅 dateTime</span>
             <input
               type="datetime-local"
               className="dm-deadline-inp"
-              id="dm-deadline"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
+              id="dm-dateTime"
+              value={dateTime}
+              onChange={(e) => setDateTime(e.target.value)}
               aria-label="Deadline"
             />
             <span style={{ fontSize: 11, color: "var(--text5)" }}>(optional)</span>
@@ -139,6 +163,42 @@ export default function DelegateTaskModal({
           </div>
         </div>
       </div>
+	  
+	  
+	  {!user && (
+		<SmallMessageModal
+			open={!user}
+			onClose={onClose}
+			style={{ background: "#f4d03f" }}
+			>
+			<div className="auth-box">
+			<span>Kindly Login or Sign up to proceed</span>
+			<button
+            onClick={() => setLoginClicked(true)}
+            className="loginLogout login"
+             >
+            Login / Sign Up
+           </button>
+		   </div>
+		   {loginClicked && (<Login onClose={onClose} />)}
+		</SmallMessageModal>
+		)}
+		
+	 {invalidTitle && (
+		<SmallMessageModal
+			open={invalidTitle}
+			autoCloseMs={1200}
+			onClose={() => setInvalidTitle(false)}
+			style={{ background: "#f4d03f" }}
+			>
+			<div className="auth-box">
+			  <span>Kindly enter what needs to be done</span>
+		    </div>
+		</SmallMessageModal>
+		)}
+		
+	  
+	  
     </div>
   );
 }
@@ -163,7 +223,7 @@ function App() {
 
       <DelegateModal
         open={delegateOpen}
-        defaultDeadline={getTodayLocalISO()}
+        defaultDeadline="2026-02-28T17:00"
         onClose={() => setDelegateOpen(false)}
         onSubmit={handleSubmitDelegate}
       />

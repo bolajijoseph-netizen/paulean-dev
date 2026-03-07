@@ -12,13 +12,6 @@ export function UserTasksProvider({ children }) {
   const { user, authLoading } = useAuth();
   const {userId, setUserId } = useState(null);
 
-/*
-useEffect(() => {
- if (!user) {return;}
- console.log(user);
-  setUserId(user.uid);  
-}, [user]);
-*/
 
  
    // ---------------------------------------------------
@@ -75,20 +68,20 @@ useEffect(() => {
   // REAL-TIME SUBSCRIPTION
   // ---------------------------------------------------
   useEffect(() => {
-  // If no userId yet (auth still loading), reset state and do nothing
-  if (!user) {
+  if (!user?.uid) {
     setTasks([]);
-    //setLoading(true);
     return;
   }
 
-  // When userId becomes available, subscribe to Firestore
   const q = query(
     collection(db, "userTasks"),
-    where("userId", "==", user.uid)
+    where("userId", "==", user.uid),
+	where('deleted', '==', false)
   );
 
- const unsubscribe = onSnapshot(q, (snapshot) => {
+
+	
+  const unsubscribe = onSnapshot(q, (snapshot) => {
   const list = snapshot.docs
     .map((doc) => ({
       id: doc.id,
@@ -97,11 +90,14 @@ useEffect(() => {
     .sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime)); // DESC
 
     setTasks(list);
+	console.log("Task set again");
+	console.log(list);
     setLoading(false);
   });
 
   return () => unsubscribe();
-}, [user]);
+}, [user?.uid]);
+
 
   // ---------------------------------------------------
   // ADD TASK
@@ -121,6 +117,7 @@ useEffect(() => {
       urgent: taskData.currentPlan=='urgent'?true:taskData.urgent || false,
 	  percentComplete:0,
 	  done:false,
+	  deleted:false,
       ...taskData
     };
 
@@ -148,13 +145,33 @@ useEffect(() => {
  // ---------------------------------------------------
   // DELETE TASK
   // ---------------------------------------------------
-const deleteTask = async (taskId) => {
+const deleteTask = async (task) => {
+	if (!task) return;
   try {
-	await deleteDoc(doc(db, "userTasks", taskId));
+	//await deleteDoc(doc(db, "userTasks", taskId));
+	task.deleted=true;
+	task.deletedDate=new Date(); 
+	await updateTask(task.taskId, task);
   } catch (e) {
-    console.error(`Error deleting task ${taskId}:`, e);
+    console.error(`Error deleting task ${task.taskId}:`, e);
   }
 };
+
+// ---------------------------------------------------
+  // UNDO DELETE TASK
+  // ---------------------------------------------------
+const undoDeleteTask = async (task) => {
+	if (!task) return;
+  try {
+	//await deleteDoc(doc(db, "userTasks", taskId));
+	task.deleted=false;
+	task.deletedDate=null; 
+	await updateTask(task.taskId, task);
+  } catch (e) {
+    console.error(`Error und delete task ${task.taskId}:`, e);
+  }
+};
+
 
   // ---------------------------------------------------
   // TOGGLE URGENT
@@ -239,7 +256,10 @@ const deleteTask = async (taskId) => {
 	  if(!user) return;
   try {
     // Build a query to get all flightRequests for this userId
-    const q = query(collection(db, 'userTasks'), where('userId', '==', user.uid));
+    const q = query(collection(db, 'userTasks'), 
+	where('userId', '==', user.uid),
+	where('deleted', '==', false)
+	)
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
@@ -282,6 +302,7 @@ const deleteTask = async (taskId) => {
 		latestMessage,
 		latestTaskId,
 		deleteTask,
+		undoDeleteTask
       }}
     >
       {children}

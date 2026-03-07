@@ -1,6 +1,8 @@
 import React,{useState,useEffect} from "react";
-import {useUserTasks} from './UserTasksContext';
-import { userKanbanColumns, durationOptions } from '../utils/data';;
+import {useUserTasks} from './UserTasksContext'
+import {useToast} from './ToastContext'
+import { userKanbanColumns, durationOptions } from '../utils/data';
+
 
 export default function TaskDetailModal({
   open,
@@ -8,12 +10,20 @@ export default function TaskDetailModal({
   onClose,
   onSave,
   onDelegate,
+  readOnly=false
   
 }) {
 	
 
-	const {updateTask,deleteTask} = useUserTasks();
+	const {updateTask,deleteTask,undoDeleteTask} = useUserTasks();
 	const [task,setTask]=useState(inTask);	
+	//const [toast, setToast] = useState(null);
+	const toast = useToast()
+
+
+
+
+
 
   if (!open || !task) return null;
   
@@ -21,7 +31,7 @@ export default function TaskDetailModal({
   console.log('In TaskDetailModal');
   console.log(task);
   
-  const handleChange = (updates) => {
+ const handleChange = (updates) => {
   setTask(prev => ({
     ...prev,
     ...updates
@@ -36,9 +46,25 @@ const handleSave = () => {
 	} 
 
 const handleDelete = () => {
-	deleteTask(task.taskId);
-	onClose();
-	}
+	
+	console.log('In handleDelete');
+	
+	deleteTask(task);
+	
+	toast.show({
+		message: "Deleted",
+		actionLabel: "Undo",
+		onAction: undoDelete,
+    });
+
+ 
+  onClose();
+	
+}
+	
+const undoDelete = () => {
+	undoDeleteTask(task);
+}
 
 function getDateLocalISO(date) {
   const d = new Date(date);
@@ -57,6 +83,9 @@ function formatPrettyDate(d) {
 	const date= new Date(d);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+   
+	console.log(`In formatPrettyDate ${d}`);
+ 
 
   const month = months[date.getMonth()];
   const day = date.getDate();
@@ -78,8 +107,10 @@ const delegateToPaulean = () =>{
 
 
 
+
   return (
-    <div className="modal-bg open" onClick={onClose}  onContextMenu={(e) => e.stopPropagation()}>
+  <fieldset disabled={readOnly}>
+    <div className="modal-bg open" onClick={onClose}  onContextMenu={(e) => e.stopPropagation()} onDragStart={(e) => e.stopPropagation()}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         
         {/* HEADER */}
@@ -88,7 +119,7 @@ const delegateToPaulean = () =>{
 
           <input
             className="modal-title-inp"
-            value={task.title || ""}
+            value={task.title}
             onChange={(e) => handleChange({ title: e.target.value })}
           />
 
@@ -109,19 +140,18 @@ const delegateToPaulean = () =>{
           <div className="mrow">
             <div className="mrow-ic">⏱</div>
             <div className="mrow-lbl">Duration</div>
-			
-            <select
-              className="msel"
-              value={task.duration}
-              onChange={(e) => handleChange({ duration: e.target.value })}
-            >
-              <option>10 min</option>
-              <option>15 min</option>
-              <option>30 min</option>
-              <option>1 hour</option>
-              <option>2 hours</option>
-            </select>
-    
+            
+			<select
+				className="msel"
+				value={task.duration}
+				onChange={(e) => handleChange({ duration: e.target.value })}
+			>
+			{durationOptions.map((opt) => (
+				<option key={opt.value} value={opt.value}>
+					{opt.label}
+				</option>
+			))}
+			</select>
           </div>
 
           <div className="mrow">
@@ -150,17 +180,15 @@ const delegateToPaulean = () =>{
 		  <div>
 		  <label className="mrow-lbl">%Complete:</label>
 		  <input
-            className="modal-title-inp"
-            value={task.done?100:task.percentComplete ||""}
+            value={task.percentComplete || ""}
 			type="range"
 			min="0" max="100"
+			disabled
             onChange={(e) => handleChange({ percentComplete: e.target.value })}
           />
-		  <sup style={{ fontSize: '0.55em', color: 'green' }}>  {task.done?100:task.percentComplete}</sup>
+		  <sup style={{fontSize: '0.55em', color: 'green'}}>{task.percentComplete?task.percentComplete:"0"}%</sup>
 		  </div>
-
-		<div>
-				
+		  <div>
 		  <label className="mrow-lbl">Move To :</label>
 		  <select
               className="msel"
@@ -176,7 +204,7 @@ const delegateToPaulean = () =>{
             </select>
 			
 			
-		  </div>	
+		  </div>
 
 
           <div className="mdivider"></div>
@@ -208,6 +236,8 @@ const delegateToPaulean = () =>{
 		</div>
 
       </div>
+
     </div>
+    </fieldset>
   );
 }

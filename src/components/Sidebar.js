@@ -9,7 +9,7 @@ import UserProfile from './UserProfile';
 import { useUserProfile } from "./UserProfileContext";
 
 
-export default function Sidebar({ onNav, isMobile,onTogglePP, onOpenDelegate, active, onClose }) {
+export default function Sidebar({ onNav, isMobile,onTogglePP, onOpenDelegate, active, onClose, onToggleArchive }) {
   
   
   const { user, loading } = useAuth();
@@ -19,24 +19,27 @@ export default function Sidebar({ onNav, isMobile,onTogglePP, onOpenDelegate, ac
   const [pauleanTasks,setPauleanTasks]=useState(null);
   const [todayTasks,setTodayTasks]=useState(null);
   const [userLocation, setUserLocation]=useState(null);
+  const [archivedTasks,setArchivedTasks]=useState(null);
   
   
   const {tasks} = useUserTasks();
-
- useEffect(() => {
+  
+  useEffect(() => {
 	 fn_getUserLocation(); 
   },[]);
-  
   
   useEffect(() => {
 	setTodayTasks(tasks.filter(t=>t.currentPlan=='today').length);
 	setPauleanTasks(tasks.filter(t=>t.delegatedToPaulean).length);
 	setActivePauleanTasks(tasks.filter(t=>t.delegatedToPaulean&&!t.done).length);
+	setArchivedTasks(tasks.filter(t=>t.currentPlan=='archive').length);
   }, [tasks]);
   
   const handleLoginComplete = () => {
     setLoginClicked(false);
   };
+	
+
 
 async function getLocation() {
   if (!navigator.geolocation) {
@@ -52,11 +55,11 @@ async function getLocation() {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
 
-    //console.log("Latitude:", lat);
-    //console.log("Longitude:", lng);
+    console.log("Latitude:", lat);
+    console.log("Longitude:", lng);
 
     const location = await reverseGeocode(lat, lng);
-    //console.log(location);
+    console.log(location);
 
     return location;
 
@@ -82,15 +85,20 @@ async function reverseGeocode(lat, lng) {
   const state = data.address.state;
   const country = data.address.country;
   
-return `${city},${state}.${country}`;
+  //console.log(`${city},${state}. ${country}`);
+  
+return `${city},${state}.${country}`
 
 } 
+
+
 
 const fn_getUserLocation = () =>{
 getLocation().then(loc =>{
 	setUserLocation(loc);
 });
 }
+
 
 
   return (
@@ -137,7 +145,7 @@ getLocation().then(loc =>{
 
       <div className="loc-chip" onClick={() => onNav('settings')}>
         <div className="loc-dot" />
-        <div className="loc-text"> <b>{userLocation}</b></div>
+        <div className="loc-text"><b>{userLocation}</b></div>
         <div className="loc-edit-sm">Edit</div>
       </div>
 
@@ -147,7 +155,7 @@ getLocation().then(loc =>{
           <div className="paulean-label">Paulean Active</div>
           <div className="paulean-count">{activePauleanTasks} active</div>
         </div>
-       {/* <div className="paulean-desc" style={{ color: 'var(--red)' }}>⚠ 1 conflict needs reply</div> */}
+        
       </div>
 
       <div className="delegate-quick-btn" onClick={onOpenDelegate}>
@@ -161,7 +169,7 @@ getLocation().then(loc =>{
       <div className="nav-section">Views</div>
       <div className={`nav-item ${active==='board'?'active':''}`} onClick={() => onNav('board')}>⊞ Today's Board <span className="nb">{todayTasks}</span></div>
       {/*<div className={`nav-item ${active==='cal'?'active':''}`} onClick={() => onNav('cal')}>📅 Calendar</div> */}
-      <div className="nav-item" onClick={onTogglePP}>✦ Paulean Tasks <span className="nb nb-blue">{pauleanTasks}</span></div>
+      <div className="nav-item" onClick={onToggleArchive}>📦 Tasks Archive <span className="nb nb-blue">{archivedTasks}</span></div>
 	  {/*<div className="nav-item" onClick={() => onNav('settings')}>⚙️ Calendar & Work</div> */}
 
 		  {/*
