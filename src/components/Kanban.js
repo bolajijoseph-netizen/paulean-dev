@@ -1,9 +1,11 @@
 import React,{ useState, useEffect }  from 'react';
 import TaskCard from './TaskCard';
-//import {useUserTasks} from './UserTasksContext'
 import DayTimeSlots from './DayTimeSlots'
+import ArchiveTasksPanel  from './ArchiveTasksPanel';
 
 export default function Kanban({ columns, tasks, handlers }) {
+	
+ 
 
 function getPlan(dateString) {
   const input = new Date(dateString);
@@ -58,7 +60,7 @@ function getPlan(dateString) {
       >
         {/* TODAY COLUMN USES TIMELINE */}
         {col.id === "today" && (
-          <DayTimeSlots handlers={handlers} inTasks={tasks} />
+          <DayTimeSlots handlers={handlers} inTasks={tasks}  />
         )}
 
         {/* ALL OTHER COLUMNS USE NORMAL TASKCARDS */}
@@ -69,21 +71,23 @@ function getPlan(dateString) {
                 t.currentPlan === col.id ||
                 (t.delegatedToPaulean && col.id === "paulean")
             )
-            .map((t) => (
+            .map((t,index) => (
+			
               <TaskCard
-                key={t.id}
+                key={index}
                 task={t}
-                onOpen={handlers.openDetail(true)}
+                onOpen={() => handlers.openDetail(true)}
                 onToggleDone={handlers.toggleDone}
                 draggableProps={handlers}
               />
-            ))}
+            ))			
+			}
 
         <div
           className="add-slot-btn"
           onClick={() => handlers.openAdd(col.id)}
         >
-          ＋ Add time slot
+		＋ Add Task
         </div>
       </div>
     </div>
